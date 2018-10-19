@@ -32,14 +32,8 @@ public class DS18B20 extends MeasurePoint {
 	@Override
 	public void setHardwareError() {
 		hardwareError = true;
-		error = true;
 	}
 
-	@Override
-	public void setSoftwareError() {
-		softwareError = true;
-		error = true;
-	}
 
 	
 	@Override
@@ -58,7 +52,7 @@ public class DS18B20 extends MeasurePoint {
 	@Override
 	public String toString() {
 		return "DS18B20 [name=" + name + ", measureUnit=" + measureUnit + ", value=" + value + ", hardwareError="
-				+ hardwareError + ", softwareError=" + softwareError + ", error=" + error + ", sensorNumber="
+				+ hardwareError +  ", sensorNumber="
 				+ sensorNumber + ", sensorBus=" + sensorBus + ", avg1sec=" + avg1sec + "] " +" \n";
 	}
 	
@@ -71,23 +65,18 @@ public class DS18B20 extends MeasurePoint {
 		this.measureUnit = measureUnit;
 		this.value = value;
 		this.hardwareError = true;
-		this.softwareError = true;
-		this.error = true;
 		this.sensorNumber = sensorNumber;
 		this.sensorBus = sensorBus;
 		this.simulationMode = simulationMode;
-		this.readCycleTime = readCycleTime;
-		Timer timer = new Timer(readCycleTime, this);
-		timer.start();
 	}
 
 
 	public DS18B20() {
-		this("defaultname", "stC", "xxxx", "1-wire", false, 1000);
+		this("defaultname", "stC", "xxxx", "1-wire", false, 500);
 	}
 
 	public DS18B20(String name) {
-		this(name, "stC", "xxxx", "1-wire", false, 1000);
+		this(name, "stC", "xxxx", "1-wire", false, 500);
 	}
 
 	
