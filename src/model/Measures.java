@@ -13,58 +13,50 @@ import com.pi4j.io.w1.W1Device;
 import com.pi4j.io.w1.W1Master;
 import com.pi4j.component.temperature.*;
 
-public class Measures implements ActionListener {
+public class Measures {
 	public ArrayList<MeasurePoint> measureList = new ArrayList<MeasurePoint>();
-	private int cycleTime = 1000;
-	private Timer timer = new Timer(cycleTime, this);
 	
-	//odczyt wszystkich czujników i wypelnienie pól obiektów
-	private void getDS18B20() {
-		
-		
-		
-		W1Master master = new W1Master();
-		List<W1Device> w1Devices = master.getDevices(TmpDS18B20DeviceType.FAMILY_CODE);
-		for (W1Device device : w1Devices) {
-		    //this line is enought if you want to read the temperature
-		    System.out.println("Temperature: " + ((TemperatureSensor) device).getTemperature());
-		    //returns the temperature as double rounded to one decimal place after the point
-
-		    try {
-		        System.out.println("1-Wire ID: " + device.getId() +  " value: " + device.getValue());
-		        //returns the ID of the Sensor and the  full text of the virtual file
-		    } catch (IOException e) {
-		        e.printStackTrace();
-		    }
-		}
-		
-		
-		
-		System.out.println("jest odczyt\n");
-	}
-	
-	//dodanie kolejnego czujnika do listy obs³ugiwanych
-	public void add(MeasurePoint measurePoint) {
-		measureList.add(measurePoint);
-	}
 	
 	//konstruktor
 	public Measures() {
-		super();
-		timer.start();	
+		super();	
 	}
 
-	//zmiana czêstotliwoœci odczytu wejœæ
-	public void changeReadCycle(int newReadCycle) {
-		cycleTime = newReadCycle;
-		timer.setDelay(cycleTime);		
+	//maxMeasures - wybiera maksymalnï¿½ wartoï¿½ï¿½ z listy pomiarï¿½w
+	public MeasurePoint getMaxMeasure() {
+		int indexMax=0; 
+		Double valueMax = Double.MIN_VALUE;
+		for(int i=0; i < measureList.size(); i++) {
+			if(measureList.get(i).getValue() > valueMax) {
+				indexMax = i;
+				valueMax = measureList.get(i).getValue();
+			}
+		}
+		return measureList.get(indexMax);
 	}
 	
-//przerwanie od zegara
+	//minMeasures - wybiera minimalna wartoï¿½ï¿½ z listy pomiarï¿½w
+		public MeasurePoint getMinMeasure() {
+			int indexMin=0; 
+			Double valueMin = Double.MAX_VALUE;
+			for(int i=0; i < measureList.size(); i++) {
+				if(measureList.get(i).getValue() < valueMin) {
+					indexMin = i;
+					valueMin = measureList.get(i).getValue();
+				}
+			}
+			return measureList.get(indexMin);
+		}
+	
+
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		getDS18B20();//odczyt temperatur 
-		
+	public String toString() {
+		String ret = "";
+		for(int i=0; i < measureList.size(); i++){
+			ret += measureList.get(i).getSensorNumber() + "==>" + measureList.get(i).getValue() +";  ";
+		}
+		//System.out.println("  " + measureList.size());
+		return ret;
 	}
 	
 	

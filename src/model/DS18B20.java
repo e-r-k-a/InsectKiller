@@ -1,83 +1,69 @@
 package model;
 
+import java.awt.event.ActionEvent;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.Timer;
 
+import com.pi4j.component.temperature.TemperatureSensor;
+import com.pi4j.component.temperature.impl.TmpDS18B20DeviceType;
+import com.pi4j.io.w1.W1Device;
+import com.pi4j.io.w1.W1Master;
+
 public class DS18B20 extends MeasurePoint {
-
-	@Override
-	public void setName() {
-		name = "TempDS18B20";
-	}
-
-	@Override
-	public void setmeasureUnit() {
-		measureUnit = "stC";
-
-	}
-
-	@Override
-	public void setValue() {
-		if(!simulationMode) {
-		//odczyt wartoœci z modu³u DS18B20
-		}
-		else {
-			 Random generator = new Random();
-			 value = generator.nextFloat()*100;
-		}
-		
-	}
-
-	@Override
-	public void setHardwareError() {
-		hardwareError = true;
-	}
-
+	
+//	private W1Measures w1Measures; //kopia referencji zeby wiedziec gdzie pisac wyniki
+	private W1Device w1Device; //kopia referencji w obiekcie W1Measures
+//	private MeasurePoint measurePoint;//kopia ref gdzie zapisywaÄ‡
 
 	
-	@Override
-	public void setSensorNumber() {
-		// numer odczytany z modu³u
-		sensorNumber = "0x0000";
-	}
 
-	@Override
-	public void setSensorBus() {
-		sensorBus = "1- Wire";
-
-	}
-	
-
-	@Override
+/*	@Override
 	public String toString() {
-		return "DS18B20 [name=" + name + ", measureUnit=" + measureUnit + ", value=" + value + ", hardwareError="
-				+ hardwareError +  ", sensorNumber="
-				+ sensorNumber + ", sensorBus=" + sensorBus + ", avg1sec=" + avg1sec + "] " +" \n";
+		return "DS18B20 [name=" + this.getName() + ", MeasureUnit=" + getMeasureUnit() + ", value=" + getValue() + ", hardwareError="
+				+ getHardwareError() +  ", sensorNumber="
+				+ getSensorNumber() + ", sensorBus=" + getSensorBus() "+ "] ";
+	}
+	*/
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		//przerwanie timera (trzeba odczytac pomiar i zapisaÄ‡ wynik)
+		this.setValue(((TemperatureSensor)w1Device).getTemperature());//odczyt wartoÅ›ci i zapisanie do pomiaru
+		this.setHardwareError(false);	
+		LocalTime lt=LocalTime.now();
+		this.setMeasureTime(lt);
+	//	System.out.println("czas pomiaru: " + this.getMeasureTime() + " name=" + this.getName() + " value=" + this.getValue());
 	}
 	
 
 	
+
 	// K o n s t r u k t o r y
-	public DS18B20(String name, String measureUnit, String sensorNumber, String sensorBus, boolean simulationMode, int readCycleTime) {
+	public DS18B20(String name, String sensorNumber, boolean simulationMode, W1Device w1Device) {
 		super();
-		this.name = name;
-		this.measureUnit = measureUnit;
-		this.value = value;
-		this.hardwareError = true;
-		this.sensorNumber = sensorNumber;
-		this.sensorBus = sensorBus;
-		this.simulationMode = simulationMode;
+		this.setName(name);
+		this.setMeasureUnit("st C");
+		this.setValue(0.0);
+		this.setHardwareError(true);
+		this.setSensorNumber(sensorNumber);
+		this.setSensorBus("1-Wire");
+		this.setSimulationMode(simulationMode);
+		this.getTimer().start();//wystartowanie timera pomiaru
+		//this.measurePoint = measurePoint;
+		this.w1Device = w1Device;
 	}
+	
+	
 
-
-	public DS18B20() {
-		this("defaultname", "stC", "xxxx", "1-wire", false, 500);
-	}
-
-	public DS18B20(String name) {
-		this(name, "stC", "xxxx", "1-wire", false, 500);
-	}
-
+	
+	
+	
+	
+	
+	
 	
 }
