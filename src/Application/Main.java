@@ -31,7 +31,7 @@ import javax.swing.JButton;
 public class Main extends JFrame implements ActionListener, MenuListener {
 
 	//============== P A R A M E T R Y =============
-			public final boolean LAPTOP = false;
+			public final boolean LAPTOP = true;
 			public double zadTemp = 40.0;//wartość zadana regulatora
 			public double maxTemp = 60.0;//wartość maksymalna (do ogranicznika)
 			public double kp = 3.0;
