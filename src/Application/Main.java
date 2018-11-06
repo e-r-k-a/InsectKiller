@@ -1,5 +1,6 @@
 package Application;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,6 +26,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JButton;
 
+import org.jfree.chart.*;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+
+import javafx.scene.chart.LineChart;
+
 
 public class Main extends JFrame implements ActionListener, MenuListener {
 
@@ -46,16 +53,18 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	JLabel ltZadana, ltMax;
 	JTextField  tfZadana,tfMaxTemp;
 	private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+	private JPanel panelSterowanie;
+	private JPanel panelRaport;
 	private JPanel panelRegulacja;
 	private JPanel panelPomiary;
 	private JPanel panelZdarzenia;
+	private JPanel panelWykres;
+	
 	
 	private JTable tabMeasurments;
 	private JScrollPane scrollPane;
 	private JTextArea textArea;
 	private JScrollPane scrollPane_1;
-	private JPanel panelSterowanie;
-	private JPanel panelRaport;
 	private JScrollPane scrollPane_2;
 	private JTextArea textRaport;
 	private JTextField tfControllerKp;
@@ -75,7 +84,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	public Main() {
 		setSize(723, 402);
 		setTitle("INSECT KILLER!!!!!!");
-		getContentPane().setLayout(null);
+		BorderLayout bl = new BorderLayout();
+		getContentPane().setLayout(bl);
 		tabbedPane.setBounds(10, 11, 687, 342);
 		getContentPane().add(tabbedPane);
 		
@@ -110,7 +120,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		
 		panelRaport = new JPanel();
 		tabbedPane.addTab("Raport", null, panelRaport, null);
-		panelRaport.setLayout(null);
+		panelRaport.setLayout(new BorderLayout());
 		
 		scrollPane_2 = new JScrollPane();
 		scrollPane_2.setBounds(0, 0, 682, 314);
@@ -300,10 +310,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 						
 		panelPomiary = new JPanel();
 		tabbedPane.addTab("Pomiary", null, panelPomiary, null);
-		panelPomiary.setLayout(null);
-		
+		panelPomiary.setLayout(new BorderLayout());
 		scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 42, 586, 213);
 		panelPomiary.add(scrollPane);
 		
 		tabMeasurments = new JTable();
@@ -325,24 +333,42 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		});
 		tabMeasurments.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		
+		//panel zdarzenia
 		panelZdarzenia = new JPanel();
 		tabbedPane.addTab("Zdarzenia", null, panelZdarzenia, null);
-		panelZdarzenia.setLayout(null);
+	
+		panelZdarzenia.setLayout(new BorderLayout());
 		
 		scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(33, 23, 501, 249);
+//		scrollPane_1.setBounds(33, 23, 501, 249);
 		panelZdarzenia.add(scrollPane_1);
 		
 		textArea = new JTextArea();
 		scrollPane_1.setViewportView(textArea);
 		
-		
-	
-		
-		
-
-						
+		//panel wykres
+		panelWykres = new JPanel();
+		tabbedPane.addTab("Wykres", null, panelWykres, null);
+		panelWykres.setLayout(new BorderLayout());	
+		JFreeChart lineChart = ChartFactory.createLineChart(
+				 "wykres temperatur",
+		         "Czas","Temperatura",
+		         createDataset(),
+		         PlotOrientation.VERTICAL,
+		         true,true,false);		
+		ChartPanel chartPanel = new ChartPanel( lineChart );
+	    panelWykres.add(chartPanel, BorderLayout.CENTER);
 	}
+	
+	private DefaultCategoryDataset createDataset( ) {
+	      DefaultCategoryDataset dataset = new DefaultCategoryDataset( );
+	      dataset.addValue( 15 , "temp1" , "1" );
+	      dataset.addValue( 30 , "temp1" , "2" );
+	      
+	      dataset.addValue( 60 , "temp2" ,  "1" );
+	      dataset.addValue( 20 , "temp2" ,  "2" );
+	      return dataset;
+	   }
 	
 	@Override
 	public void menuCanceled(MenuEvent e) {
@@ -399,7 +425,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 	public static void main(String[] args) {
 
-		int czasCyklums = 500;//czas odczytu wej�� i obiegu regulatora
+		int czasCyklums = 500;//czas odczytu wejść i obiegu regulatora
 		
 		//wsp�czynniki regulatora
 		double Td = 0.0;
