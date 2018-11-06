@@ -25,8 +25,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JButton;
 
-//import lejos.util.*;
-//import com.stormbots.*;
 
 public class Main extends JFrame implements ActionListener, MenuListener {
 
