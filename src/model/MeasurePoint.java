@@ -12,7 +12,7 @@ import javax.swing.Timer;
 
 import com.pi4j.io.w1.W1Device;
  
-
+/* jedna punkt pomiarowy */
 public abstract class MeasurePoint implements ActionListener {
 
 	final public int DEFAULT_READ_CYCLE = 1000;//domyślny czas odczytu pomiaru w ms
