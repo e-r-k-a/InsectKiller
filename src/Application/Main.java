@@ -27,6 +27,7 @@ import javax.swing.JTextArea;
 import javax.swing.JButton;
 
 import org.jfree.chart.*;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
@@ -48,7 +49,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 		
 			
-			
+	public W1Measures w1measures = new W1Measures();	
 	JLabel ltTempMin, ltTempMax, ltControllerError, ltLimiterError,ltControllerOutput, ltLimiterOutput;
 	JLabel ltZadana, ltMax;
 	JTextField  tfZadana,tfMaxTemp;
@@ -72,6 +73,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	private JTextField tfLimiterKp;
 	private JTextField tfLimiterTc;
 	private JButton btnStart, btnPause, btnStop;
+	
+	private TempChart lineChart; 
 	
 	public final int MODE_STOP=0;
 	public final int MODE_HEATING=1;
@@ -350,26 +353,11 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		panelWykres = new JPanel();
 		tabbedPane.addTab("Wykres", null, panelWykres, null);
 		panelWykres.setLayout(new BorderLayout());	
-		JFreeChart lineChart = ChartFactory.createLineChart(
-				 "wykres temperatur",
-		         "Czas","Temperatura",
-		         createDataset(),
-		         PlotOrientation.VERTICAL,
-		         true,true,false);		
-		ChartPanel chartPanel = new ChartPanel( lineChart );
+		lineChart = new TempChart("temperatury", w1measures); 
+		ChartPanel chartPanel = new ChartPanel( lineChart.chart );
 	    panelWykres.add(chartPanel, BorderLayout.CENTER);
 	}
-	
-	private DefaultCategoryDataset createDataset( ) {
-	      DefaultCategoryDataset dataset = new DefaultCategoryDataset( );
-	      dataset.addValue( 15 , "temp1" , "1" );
-	      dataset.addValue( 30 , "temp1" , "2" );
-	      
-	      dataset.addValue( 60 , "temp2" ,  "1" );
-	      dataset.addValue( 20 , "temp2" ,  "2" );
-	      return dataset;
-	   }
-	
+		
 	@Override
 	public void menuCanceled(MenuEvent e) {
 		// TODO Auto-generated method stub
@@ -442,7 +430,6 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		double limiterError=0.0;
 		
 		
-		W1Measures w1measures = new W1Measures();
 		PWMOutput pwmOutput;
 		
 		
@@ -490,8 +477,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 			pwmOutput = new PWMOutput(1, 100);//pin 1, period [ms]
 		
 			//zbierz pomiary
-			w1measures.measureList.get(0).changeReadCycle(czasCyklums);//zmiana cyklu odczytu
-			w1measures.measureList.get(1).changeReadCycle(czasCyklums);
+			w.w1measures.measureList.get(0).changeReadCycle(czasCyklums);//zmiana cyklu odczytu
+			w.w1measures.measureList.get(1).changeReadCycle(czasCyklums);
 		}	
 		int licznik=0;
 		while(true) {
@@ -504,8 +491,9 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 				
 					Thread.sleep(czasCyklums);
 					if(!w.LAPTOP) {
-						actualMinimal = w1measures.getMinMeasure().getValue();//sterowanie do warto�ci minimalnej
-						actualMaximal = w1measures.getMaxMeasure().getValue();//ograniczenie do warto�ci maksymalnej
+						
+						actualMinimal = w.w1measures.getMinMeasure().getValue();//sterowanie do warto�ci minimalnej
+						actualMaximal = w.w1measures.getMaxMeasure().getValue();//ograniczenie do warto�ci maksymalnej
 					}
 					//zaktualizowanie parametrów 
 					pidController.setParameters(w.kp, w.Tc, Td, minOutput, maxOutput);
@@ -561,7 +549,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 					//Raport
 					//w.textRaport.append("wypisanie info o czasie rozpoczęcia grzania, działaniach operatora, osiągnięcia stanu zadanego dla każdego czujnika i osiągnięcia czasu czujnika w temp >=zadanej\n");
 					
-					
+					//uaktualnienie wykresy na zakładce wykres
+					w.lineChart.update();
 					licznik++;
 			}catch (InterruptedException e) {
 				e.printStackTrace();
