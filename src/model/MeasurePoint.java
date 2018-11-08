@@ -65,6 +65,10 @@ public abstract class MeasurePoint implements ActionListener {
 		return timer;
 	}
 	public Double getValue(){
+		if(simulationMode) {
+			 Random generator = new Random();
+			 return generator.nextDouble()*100;
+		}
 		return value;
 	}
 	public String getName(){
