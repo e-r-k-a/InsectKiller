@@ -327,7 +327,6 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		lineChart = new TempChart("temperatury", w1measures);
 		ChartPanel chartPanel = new ChartPanel(lineChart.chart);
 		panelWykres.add(chartPanel, BorderLayout.CENTER);
-
 	}
 
 	@Override
