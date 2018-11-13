@@ -13,6 +13,7 @@ import java.util.Scanner;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -22,19 +23,23 @@ import javax.swing.JPanel;
 import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
 
 import org.jfree.chart.*;
-import org.jfree.chart.plot.Plot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.DefaultCategoryDataset;
 
-import javafx.scene.chart.LineChart;
 
 public class Main extends JFrame implements ActionListener, MenuListener {
 
+	
 	// ============== P A R A M E T R Y =============
 	public final boolean LAPTOP = true;
 	public double zadTemp = 40.0;// wartość zadana regulatora
@@ -44,6 +49,44 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	public double limKp = 10.0;
 	public double limTc = 50;// [ms]
 
+	public static Alarm alarm = new Alarm();
+	public  static AlarmListener alarmListener = new AlarmListener() {
+		
+		@Override
+		public void alarmExceeded(AlarmEvent e) {
+			//Przyszedł alarm z systemu alarmów
+			StyleContext context = new StyleContext();
+			Style styleEvent = context.addStyle("event", null);
+			Style styleWarning = context.addStyle("warning", null);
+			Style styleAlarm = context.addStyle("alarm", null);
+			Style styl;
+			StyleConstants.setForeground(styleEvent, Color.BLACK);
+			StyleConstants.setForeground(styleWarning, Color.BLUE);
+			StyleConstants.setForeground(styleAlarm, Color.RED);
+						
+			switch (e.getType()) {
+	            case AlarmEvent.TYPE_EVENT:  styl = styleEvent;
+	                     break;
+	            case AlarmEvent.TYPE_WARNING:  styl = styleWarning;
+	                     break;
+	            case AlarmEvent.TYPE_ALARM:  styl = styleAlarm;
+	                     break;
+	            default: styl = styleAlarm;
+	                     break;
+	        }
+			try {
+			      Document doc = textPaneZdarzenia.getDocument();
+			      String str = e.getDate().toString() + " " + e.getTime().toString() + " id=" + e.getid() + " " + e.getDesc() + "\n";
+			      doc.insertString(doc.getLength(), str,  styl);
+			   } catch(BadLocationException exc) {
+			      exc.printStackTrace();
+			   }
+			 
+			 
+		}
+	};
+
+	
 	private final String pr = "00000000976b5823";
 
 	public W1Measures w1measures = new W1Measures();
@@ -60,10 +103,10 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 	private JTable tabMeasurments;
 	private JScrollPane scrollPane;
-	private JTextArea textArea;
+	private static JTextPane textPaneZdarzenia;
 	private JScrollPane scrollPane_1;
 	private JScrollPane scrollPane_2;
-	private JTextArea textRaport;
+	private JTextPane textPaneRaport;
 	private JTextField tfControllerKp;
 	private JTextField tfControllerTc;
 	private JTextField tfLimiterKp;
@@ -122,8 +165,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		scrollPane_2.setBounds(0, 0, 682, 314);
 		panelRaport.add(scrollPane_2);
 
-		textRaport = new JTextArea();
-		scrollPane_2.setViewportView(textRaport);
+		textPaneRaport = new JTextPane();
+		scrollPane_2.setViewportView(textPaneRaport);
 
 		panelRegulacja = new JPanel();
 		tabbedPane.addTab("Regulacja", null, panelRegulacja, null);
@@ -312,13 +355,14 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		tabbedPane.addTab("Zdarzenia", null, panelZdarzenia, null);
 
 		panelZdarzenia.setLayout(new BorderLayout());
-
+		
 		scrollPane_1 = new JScrollPane();
 		// scrollPane_1.setBounds(33, 23, 501, 249);
 		panelZdarzenia.add(scrollPane_1);
 
-		textArea = new JTextArea();
-		scrollPane_1.setViewportView(textArea);
+		textPaneZdarzenia = new JTextPane();
+		textPaneZdarzenia.setEditable(false);//okno tylko do wyświetlania zdarzeń
+		scrollPane_1.setViewportView(textPaneZdarzenia);
 
 		// panel wykres
 		panelWykres = new JPanel();
@@ -337,25 +381,41 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	public void menuDeselected(MenuEvent e) {
 	}
 
+	public JEditorPane getTextAreaZdarzenia() {
+		return textPaneZdarzenia;
+	}
+
 	@Override
 	public void menuSelected(MenuEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
+		
+		StyleContext context = new StyleContext();
+		Style styleRaport = context.addStyle("Raport", null);
+		StyleConstants.setForeground(styleRaport, Color.BLACK);
+		LocalTime l = LocalTime.now();
+		Document doc = textPaneRaport.getDocument();
+	    String str = l.getHour() + ":" + l.getMinute() + ":" + l.getSecond();
+	
+		
+		
 		if (source == btnStart) {
 			if ((mode == MODE_STOP) || (mode == MODE_PAUSE)) {
 				mode = MODE_HEATING; // zmiana trybu
 				btnStart.setBackground(Color.GREEN);
 				btnStop.setBackground(Color.LIGHT_GRAY);
 				btnPause.setBackground(Color.LIGHT_GRAY);
-				LocalTime l = LocalTime.now();
-				textRaport.append(l.getHour() + ":" + l.getMinute() + ":" + l.getSecond() + " - Ropoczęcie grzania\n");// wpisanie
-																														// do
-																														// zdarzeń
+				str += " - Ropoczęcie grzania\n";// wpisanie do zdarzeń
+				try {
+					doc.insertString(doc.getLength(), str,  styleRaport);
+				} catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+				Alarm.aL.alarmExceeded(new AlarmEvent(1, "rozpoczecie grzania", AlarmEvent.TYPE_EVENT, LocalDate.now(), LocalTime.now()));//wpisanie do systemu alarmów
 			}
 		}
 		if (source == btnStop) {
@@ -364,9 +424,13 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 				btnStart.setBackground(Color.LIGHT_GRAY);
 				btnStop.setBackground(Color.RED);
 				btnPause.setBackground(Color.LIGHT_GRAY);
-				LocalTime l = LocalTime.now();
-				textRaport.append(l.getHour() + ":" + l.getMinute() + ":" + l.getSecond()
-						+ " - Wyłączone grzanie - nie osiągnięta temperatura\n");// wpisanie do zdarzeń
+				str += " - Wyłączone grzanie - nie osiągnięta temperatura\n";
+			    try {
+					doc.insertString(doc.getLength(), str,  styleRaport);
+				} catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+			    Alarm.aL.alarmExceeded(new AlarmEvent(2, "nie osiagnieta temperatura", AlarmEvent.TYPE_WARNING, LocalDate.now(), LocalTime.now()));//wpisanie do systemu alarmów
 			}
 		}
 		if (source == btnPause) {
@@ -375,11 +439,13 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 				btnStart.setBackground(Color.LIGHT_GRAY);
 				btnStop.setBackground(Color.LIGHT_GRAY);
 				btnPause.setBackground(Color.YELLOW);
-				LocalTime l = LocalTime.now();
-				textRaport.append(
-						l.getHour() + ":" + l.getMinute() + ":" + l.getSecond() + " - Proces grzania wstrzymany\n");// wpisanie
-																													// do
-																													// zdarzeń
+				str += " - Proces grzania wstrzymany\n";
+			    try {
+					doc.insertString(doc.getLength(), str,  styleRaport);
+				} catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+				Alarm.aL.alarmExceeded(new AlarmEvent(3, "proces grzania wstrzymany", AlarmEvent.TYPE_ALARM, LocalDate.now(), LocalTime.now()));//wpisanie do systemu alarmów
 			}
 		}
 	}
@@ -456,6 +522,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		}
 
 		int licznik = 0;
+		
+	
 		while (true) {
 			try {
 				// if(licznik%3==0) {
@@ -493,9 +561,9 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 					pwmOutput.setPWM(output);
 				}
 				// wypisanie do panelu zdarzeń
-				LocalTime now = LocalTime.now();
-				w.textArea.append(LocalDate.now().toString() + " " + now.getHour() + ":" + now.getMinute() + ":"
-						+ now.getSecond() + "\n");
+			//	LocalTime now = LocalTime.now();
+			//	w.textArea.append(LocalDate.now().toString() + " " + now.getHour() + ":" + now.getMinute() + ":"
+			//			+ now.getSecond() + "\n");
 				// i na konsole
 				System.out.format(
 						"zad_reg=%.2f zad_ogr=%.2f temp min= %.2f temp max=%.2f uchyb reg.=%.2f wyjscie= %.2f tryb reg.=%.0f tryb ogr.= %.0f kp=%.2f Tc=%.2f kp_lim=%.2f Tc_lim=%.2f\n",

@@ -20,14 +20,15 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import Application.Main;
+
 /*klasa reprezentująca wykres czasowy
  * wszystkich temperatur z obiektu Measures
  */
 public class TempChart {
 
-	private int axisTime = 3600;//[s]
+	private int axisTime = 3600;// [s]
 
-	
 	public JFreeChart chart;
 	private Measures measures;
 	private TimeSeries seriesMin = new TimeSeries("temp. min");
@@ -38,16 +39,14 @@ public class TempChart {
 	public TempChart(String title, Measures measures) {
 		super();
 		this.measures = measures;
-		chart = ChartFactory.createTimeSeriesChart(
-				"wykres temperatur", "Czas", "Temperatura",
-				data, true, true, false);
-		        final XYPlot plot = chart.getXYPlot();
-		        ValueAxis axis = plot.getDomainAxis();
-		        axis.setAutoRange(true);
-		        axis.setFixedAutoRange(axisTime*1000);  //  seconds->ms
-		        axis = plot.getRangeAxis();
-		        axis.setRange(0.0, 500.0); 	
-		data.addSeries(seriesMax);        
+		chart = ChartFactory.createTimeSeriesChart("wykres temperatur", "Czas", "Temperatura", data, true, true, false);
+		final XYPlot plot = chart.getXYPlot();
+		ValueAxis axis = plot.getDomainAxis();
+		axis.setAutoRange(true);
+		axis.setFixedAutoRange(axisTime * 1000); // seconds->ms
+		axis = plot.getRangeAxis();
+		axis.setRange(0.0, 500.0);
+		data.addSeries(seriesMax);
 	}
 
 	public void update() {
@@ -56,7 +55,4 @@ public class TempChart {
 		seriesMin.add(now, measures.getMinMeasure().getValue());
 	}
 
-
-	
-	
 }
