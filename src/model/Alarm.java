@@ -9,63 +9,51 @@ import java.util.List;
 
 import Application.Main;
 
+/*
+ * Dodawanie alarmu polega na dodaniu w klasie w której występuje alarm
+ * Alarm.aL.alarmExceeded(new AlarmEvent(id_alarmu, opis alarmu, typ alarmu, data wystąpienia, czas wystąpienia);// wpisanie do systemu alarmów
+ * Alarm.aL.alarmExceeded(new AlarmEvent(1, "rozpoczecie grzania", AlarmEvent.TYPE_EVENT, LocalDate.now(), LocalTime.now()));// wpisanie do systemu alarmów
+ *
+ *  id alarmów:
+ *	1 - "rozpoczecie grzania", Main
+ *  2 - "nie osiagnieta temperatura", Main
+ *  3 - "proces grzania wstrzymany", Main
+ *  5, "temperatura maksymalna większa od dopuszczalnej", Main
+ *  
+ *  
+ */
 public class Alarm {
-	
-	 public static AlarmListener aL = new MyAlarmListener();
+	public static AlarmListener aL = new MyAlarmListener();//likstener do wyłapywania alarmów od innych
+	private static ArrayList<AlarmPoint> lista = new ArrayList<AlarmPoint>();//lista do gromadzenia alarmów od wszystkich klas
 
-		
-	private static ArrayList<AlarmPoint> lista = new ArrayList<AlarmPoint>();
-   
-	public void alarmSend(int id, boolean state) {
-		AlarmPoint alarmPoint = findAlarm(id);
-		if(alarmPoint != null) {//jest już taki alarm
-			//sprawdzenie czy zmienil sie stan
-			
-		}
-		else {//nie ma jeszcze takiego wiec dodajemy
-			
-		}
-		
-	}
-	
 	public void addAlarm(AlarmPoint alarmPoint) {
 		lista.add(alarmPoint);
 	}
-	
-	
-	private AlarmPoint findAlarm(int id) {
-		for(int i=0; i<lista.size(); i++) {
-			if(lista.get(i).getId() == id) {
-				return lista.get(i);
-			}
-		}
-		return null;
-		
-	}
+
+
 	@Override
 	public String toString() {
 		String tmp = "";
-		for(int i=0; i<lista.size(); i++) {
+		for (int i = 0; i < lista.size(); i++) {
 			tmp += lista.get(i).toString();
-			tmp +="\n";
+			tmp += "\n";
 		}
 		return tmp;
 	}
-	
-	//inner Class
-			private static class MyAlarmListener implements AlarmListener{
 
-				@Override
-				public void alarmExceeded(AlarmEvent e) {
-					AlarmPoint al = new AlarmPoint(LocalDate.now(), LocalTime.now(), e.id, e.desc, e.type);
-					lista.add(al);
-					//System.out.println("!!!ALARM!!! " + lista.toString());//Alarmy na konsole
-					//Wysłanie alarmu do GUI (zakładka zdarzenia)
-						Main.alarmListener.alarmExceeded(e);//wyslanie alarmu do GUI do zakładki Zdarzenia
-					
-									
-				}
-				
-			}
-	
+	// inner Class
+	private static class MyAlarmListener implements AlarmListener {
+
+		@Override
+		public void alarmExceeded(AlarmEvent e) {
+			AlarmPoint al = new AlarmPoint(LocalDate.now(), LocalTime.now(), e.id, e.desc, e.type);
+			lista.add(al);
+			// System.out.println("!!!ALARM!!! " + lista.toString());//Alarmy na konsole
+			// Wysłanie alarmu do GUI (zakładka zdarzenia)
+			Main.alarmListener.alarmExceeded(e);// wyslanie alarmu do GUI do zakładki Zdarzenia
+
+		}
+
+	}
+
 }
