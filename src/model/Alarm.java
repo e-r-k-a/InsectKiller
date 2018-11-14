@@ -19,8 +19,8 @@ import Application.Main;
  *  2 - "nie osiagnieta temperatura", Main
  *  3 - "proces grzania wstrzymany", Main
  *  5, "temperatura maksymalna większa od dopuszczalnej", Main
- *  
- *  
+ *  6, "osiągnięta temperatura ", Main 
+ *  7, "koniec grzania - wysoka temperatura utrzymana przez okres ",Main
  */
 public class Alarm {
 	public static AlarmListener aL = new MyAlarmListener();//likstener do wyłapywania alarmów od innych
