@@ -28,6 +28,7 @@ import javax.swing.JScrollBar;
 
 import java.awt.Font;
 import javax.swing.JTable;
+import javax.swing.table.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DateFormatter;
@@ -665,9 +666,37 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 				// uaktualnienie wykresy na zakładce wykres
 				w.lineChart.update();
 				licznik++;
+				//uaktualnienie zakładki pomiary
+				w.guiUpdatePomiary();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void guiUpdatePomiary() {
+		//dodanie odpowiedniej liczby wierszu
+		DefaultTableModel model = (DefaultTableModel) tabMeasurments.getModel();
+		//usuwamy wszystkie
+		int rowCount = model.getRowCount();
+		for(int i=0; i < rowCount; i++) {
+			int tmp = model.getRowCount();
+			model.removeRow(0);	
+		}
+		
+		for(int i = 0; i < w1measures.count(); i++) {
+			int tmp = w1measures.count();
+			model.addRow(new Object[]{i+1, w1measures.measureList.get(i).getName(), String.format("%.2f",  w1measures.measureList.get(i).getValue() )});
+		}
+		
+//		for(int i = 0; i < w1measures.count(); i++) {
+		
+			//znajdz nazwe w tabeli Pomiary
+	//		tabMeasurments.getRowCount()
+	//		tabMeasurments.setValueAt(23, 1, i);//odczyt name czujnika
+		//	tabMeasurments.setValueAt(aValue, row, column);
+			
+		
+		
 	}
 }

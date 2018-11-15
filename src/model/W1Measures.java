@@ -52,6 +52,10 @@ public class W1Measures extends Measures implements ActionListener{
 		
 		
 	}
+	
+	public int count() {
+		return measureList.size();
+	}
 
 	
 	
