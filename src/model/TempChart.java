@@ -45,7 +45,7 @@ public class TempChart {
 		axis.setAutoRange(true);
 		axis.setFixedAutoRange(axisTime * 1000); // seconds->ms
 		axis = plot.getRangeAxis();
-		axis.setRange(0.0, 500.0);
+		axis.setRange(0.0, 100.0);
 		data.addSeries(seriesMax);
 	}
 

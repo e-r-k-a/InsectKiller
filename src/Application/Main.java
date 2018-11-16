@@ -44,6 +44,12 @@ import javax.swing.JEditorPane;
 
 import org.jfree.chart.*;
 
+import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
+import com.pi4j.io.gpio.RaspiPin;
+
 public class Main extends JFrame implements ActionListener, MenuListener {
 
 	// ============== P A R A M E T R Y =============
@@ -502,13 +508,20 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		double limiterError = 0.0;
 
 		PWMOutput pwmOutput;
-
+		final GpioController gpio;
+		final GpioPinDigitalOutput stycznik;
+		
 		Main w = new Main();
 		w.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		w.setVisible(true);
 
 		if (!w.LAPTOP) {
 
+			//ustawienie GPIO i stycznika podłączonego przez przekaik na module KKAmodRPi PwrRELAY
+			gpio = GpioFactory.getInstance();//utworzenie Controllera
+			stycznik = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_22, "stycznik", PinState.HIGH);//stycznik podłączony do rel1 płytki
+			stycznik.setShutdownOptions(true,PinState.LOW);
+			
 			String fileName = "/proc/cpuinfo";
 			File file = new File(fileName);
 			Scanner scan = null;
@@ -541,7 +554,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		if (!w.LAPTOP) {
 			pwmOutput = new PWMOutput(1, 100);// pin 1, period [ms]
 
-			// zbierz pomiary
+			// testowanie zmiany czasu cyklu
 			w.w1measures.measureList.get(0).changeReadCycle(czasCyklums);// zmiana cyklu odczytu
 			w.w1measures.measureList.get(1).changeReadCycle(czasCyklums);
 		} else {
@@ -559,14 +572,20 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 		while (true) {
 			try {
-				// if(licznik%3==0) {
-				// actual +=3;
-				// }
-
+			
 				Thread.sleep(czasCyklums);
 				actualMinimal = w.w1measures.getMinMeasure().getValue();// sterowanie do warto�ci minimalnej
 				actualMaximal = w.w1measures.getMaxMeasure().getValue();// ograniczenie do warto�ci maksymalnej
 
+				//obsługa stycznika zasilającego grzałki
+				if(!w.LAPTOP) {
+					if((w.mode == w.MODE_HEATING) || (w.mode == w.MODE_PAUSE)) {
+						stycznik.high();//załączenie stycznika
+					} else {
+						stycznik.low();//wylaczenie jesli nie ma odpowiedniego trybu
+					}
+				}
+				
 				// obsługa licznika czasu grzania
 				if ((actualMinimal >= w.maxTemp) && (w.mode != w.MODE_STOP)) {
 					if (!w.isHot) {// rozpoczecie liczenia czasu
@@ -652,7 +671,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 				// wypracowanie A L A R M Ó W
 				// przekroczenie progu maksymalnego o 5stC
-				if (actualMaximal > w.maxTemp + 5) {
+				if (actualMaximal > w.zadTemp + 5) {
 					String str = "Temperatura maksymalna (" + String.format("%.2f", actualMaximal)
 							+ "st. C) większa od dopuszczalnej";
 					Alarm.aL.alarmExceeded(
@@ -688,15 +707,6 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 			int tmp = w1measures.count();
 			model.addRow(new Object[]{i+1, w1measures.measureList.get(i).getName(), String.format("%.2f",  w1measures.measureList.get(i).getValue() )});
 		}
-		
-//		for(int i = 0; i < w1measures.count(); i++) {
-		
-			//znajdz nazwe w tabeli Pomiary
-	//		tabMeasurments.getRowCount()
-	//		tabMeasurments.setValueAt(23, 1, i);//odczyt name czujnika
-		//	tabMeasurments.setValueAt(aValue, row, column);
-			
-		
-		
+				
 	}
 }
