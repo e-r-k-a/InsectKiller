@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>My test page</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script> 
+$(document).ready(function(){
+    $("#flip1").click(function(){
+        $("#panel1").slideToggle("slow");
+        $("#panel2").slideUp("slow");
+        $("#panel3").slideUp("slow");
+        
+        
+    })
+    $("#flip2").click(function(){
+        $("#panel2").slideToggle("slow");
+        $("#panel1").slideUp("slow");
+        $("#panel3").slideUp("slow");
+        
+    })
+    $("#flip3").click(function(){
+        $("#panel3").slideToggle("slow");
+        $("#panel1").slideUp("slow");
+        $("#panel2").slideUp("slow");
+        
+    });
+});
+function sendReq() {
+    alert('Hello');
+}
+
+</script>
+ 
+<style> 
+#panel1, #flip1, #panel2, #flip2, #panel3, #flip3 {
+    padding: 5px;
+    text-align: center;
+    background-color: #e5eecc;
+    border: solid 1px #c3c3c3;
+}
+
+#panel1, #panel2, #panel3 {
+	background-color: #e5ffaa;
+    padding: 20px;
+    display: none;
+}
+
+#btnStart, #btnStop, #btnPause {
+	background-color: #777777;
+    height: 50px;
+    width: 200px;
+{
+</style>
+  </head>
+
+
+  <body>
+    <h1>Mozilla is cool</h1>
+
+
+
+<div id="flip1">Sterowanie</div>
+<div id="panel1">
+	<button id="btnStart">Start</button>
+    <button id="btnPause">Pauza</button>
+    <button id="btnStop">Stop</button>
+    
+</div>
+
+<div id="flip2">Regulacja</div>
+<div id="panel2">
+	<table>
+    <tr>
+	<td id="tzad">temp zadana = </td>
+    	<td id="togr">temp ogranicznika = </td>
+    </tr>
+    <tr>
+        <td id="tmin">temp minimalna = </td>
+    	<td id="tmax">temp maksymalna = </td>
+    </tr>
+    </table>
+</div>
+
+<div id="flip3">Raport</div>
+<div id="panel3">
+	<table>
+    <!--wiersz tabeli -->
+		<tr>
+			<td>komórka1</td>	<td>komórka2</td>
+		</tr>
+		<tr>
+			<td>komórka3</td>	<td>komórka4</td>
+		</tr>
+	</table>
+</div>
+
+
+
+
+
+
+    <script> 
+   var connection = new WebSocket('ws://192.168.1.2:4444');
+
+
+    connection.onopen = function () {
+    var reqTimer = setInterval(sendReq, 1000);
+    console.log('Connected!');
+    connection.send('wysylam z JS Pinga'); // Send the message 'Ping' to the server
+    };
+
+    // Log errors
+    connection.onerror = function (error) {
+    console.log('blad WebSocket Error ' + error);
+    clearInterval(reqTimer);
+    };
+
+    // Log messages from the server
+   // connection.onmessage = function (e) {
+//	var coolVar = e;
+//	var partsArray = coolVar.split(';');
+	
+//	 console.log('server odpowiedzial : ' + e.data);
+  //  };
+
+
+function funStart() {
+	connection.send('start');
+
+}
+function funPause() {
+	connection.send('pause');
+}
+function funStop(){
+	connection.send('stop');
+}
+function sendReq(){
+	connection.send('readReq');
+	connection.onmessage = function (e) {
+	var coolVar = e.data;
+	var partsArray = coolVar.split(';');
+	document.getElementById("tzad").innerHTML = "temp. zadana = " + partsArray[0];
+	document.getElementById("togr").innerHTML = "temp. ogranicznika = " + partsArray[1];
+	document.getElementById("tmin").innerHTML = "temp. min = " + partsArray[2];
+	document.getElementById("tmax").innerHTML = "temp. max = " + partsArray[3];
+
+	}
+
+
+
+}
+</script>
+
+
+  </body>
+</html>
+

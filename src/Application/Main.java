@@ -49,6 +49,8 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.i2c.I2CBus;
+import com.pi4j.io.i2c.I2CDevice;
 
 public class Main extends JFrame implements ActionListener, MenuListener {
 
@@ -65,8 +67,9 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	private final String pr = "00000000976b5823";
 
 	public W1Measures w1measures = new W1Measures();
+	public I2CMeasures i2cMeasures;// = new I2CMeasures(I2CBus.BUS_1);
 	JLabel ltTempMin, ltTempMax, ltControllerError, ltLimiterError, ltControllerOutput, ltLimiterOutput;
-	JLabel ltZadana, ltMax, lblDuration;
+	JLabel ltZadana, ltMax, lblDuration, lblPresure;
 	JTextField tfZadana, tfMaxTemp;
 	private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 	private JPanel panelSterowanie;
@@ -188,9 +191,13 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		btnEnd.setBounds(376, 173, 200, 100);
 		panelSterowanie.add(btnEnd);
 		
-		lblDuration = new JLabel("New label");
+		lblDuration = new JLabel("Czas do zakończenia grzania");
 		lblDuration.setBounds(223, 284, 267, 19);
 		panelSterowanie.add(lblDuration);
+		
+		lblPresure = new JLabel("Ciśnienie atmosferyczne");
+		lblPresure.setBounds(223, 306, 267, 19);
+		panelSterowanie.add(lblPresure);
 
 		panelRaport = new JPanel();
 		tabbedPane.addTab("Raport", null, panelRaport, null);
@@ -515,6 +522,14 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		w.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		w.setVisible(true);
 
+		
+		
+		
+		
+		
+		
+		
+		
 		if (!w.LAPTOP) {
 
 			//ustawienie GPIO i stycznika podłączonego przez przekaik na module KKAmodRPi PwrRELAY
@@ -553,6 +568,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		// softPWM
 		if (!w.LAPTOP) {
 			pwmOutput = new PWMOutput(1, 100);// pin 1, period [ms]
+			LPS25HB lps = new LPS25HB("cisnienie11", 0x5C, true);//dodanie odczytu ciśnienia atmosferycznego
+			w.i2cMeasures.getI2cDeviceList().add((I2CDevice)lps);
 
 			// testowanie zmiany czasu cyklu
 			w.w1measures.measureList.get(0).changeReadCycle(czasCyklums);// zmiana cyklu odczytu
@@ -565,6 +582,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 			w.w1measures.measureList.add(p2);
 			w.w1measures.measureList.get(0).setSimulationMode(true);
 			w.w1measures.measureList.get(1).setSimulationMode(true);
+			
 		}
 
 		int licznik = 0;
@@ -694,6 +712,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	}
 	
 	private void guiUpdatePomiary() {
+		//uaktualnienie pomiaru ciśnienia na zakładce sterowania
+	//	lblPresure.setText(String.format());
 		//dodanie odpowiedniej liczby wierszu
 		DefaultTableModel model = (DefaultTableModel) tabMeasurments.getModel();
 		//usuwamy wszystkie
