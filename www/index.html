@@ -64,9 +64,9 @@ function sendReq() {
 
 <div id="flip1">Sterowanie</div>
 <div id="panel1">
-	<button id="btnStart">Start</button>
-    <button id="btnPause">Pauza</button>
-    <button id="btnStop">Stop</button>
+	<button id="btnStart" onclick=funStart()>Start</button>
+    <button id="btnPause" onclick=funPause() >Pauza</button>
+    <button id="btnStop" onclick=funStop() >Stop</button>
     
 </div>
 
@@ -80,6 +80,9 @@ function sendReq() {
     <tr>
         <td id="tmin">temp minimalna = </td>
     	<td id="tmax">temp maksymalna = </td>
+    </tr>
+    <tr>
+        <td id="yh">sygnał wyjściowy = </td>
     </tr>
     </table>
 </div>
@@ -127,28 +130,42 @@ function sendReq() {
   //  };
 
 
-function funStart() {
-	connection.send('start');
+function funStart() {//wcisniety START
+	connection.send('startReq');
 
 }
 function funPause() {
-	connection.send('pause');
+	connection.send('pauseReq');
 }
 function funStop(){
-	connection.send('stop');
+	connection.send('stopReq');
 }
 function sendReq(){
 	connection.send('readReq');
 	connection.onmessage = function (e) {
+//console.log('msg='+e.data);
 	var coolVar = e.data;
 	var partsArray = coolVar.split(';');
 	document.getElementById("tzad").innerHTML = "temp. zadana = " + partsArray[0];
 	document.getElementById("togr").innerHTML = "temp. ogranicznika = " + partsArray[1];
 	document.getElementById("tmin").innerHTML = "temp. min = " + partsArray[2];
 	document.getElementById("tmax").innerHTML = "temp. max = " + partsArray[3];
-
+        document.getElementById("yh").innerHTML = "sygnał wyjściowy = " + partsArray[4];
+        switch(partsArray[5]){
+	  case ("0"): document.getElementById("btnStop").style.background = '#ff0000'; //MODE_STOP
+		    document.getElementById("btnStart").style.background = '#777777';
+		    document.getElementById("btnPause").style.background = '#777777';
+	break;
+	  case ("1"): document.getElementById("btnStop").style.background = '#777777'; //MODE_START
+                    document.getElementById("btnStart").style.background = '#00ff00';
+                    document.getElementById("btnPause").style.background = '#777777';
+                break;
+	  case ("2"): document.getElementById("btnStop").style.background = '#777777'; //MODE_PAUSE
+                    document.getElementById("btnStart").style.background = '#777777';
+                    document.getElementById("btnPause").style.background = '#ff0000';
+                break;
 	}
-
+}
 
 
 }

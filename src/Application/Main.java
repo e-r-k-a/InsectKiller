@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
@@ -51,6 +52,9 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
+
+import gui.WebServer;
+
 
 public class Main extends JFrame implements ActionListener, MenuListener {
 
@@ -93,11 +97,11 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 	private TempChart lineChart;
 
-	public final int MODE_STOP = 0;
-	public final int MODE_HEATING = 1;
-	public final int MODE_PAUSE = 2;
+	public final static int MODE_STOP = 0;
+	public final static int MODE_HEATING = 1;
+	public final static int MODE_PAUSE = 2;
 
-	public int mode = MODE_STOP; // tryb pracy
+	public static int mode = MODE_STOP; // tryb pracy
 	public Instant startTime; // zapamietanie czasu startu grzania
 	public boolean isHot = false;// 1-trwa okres wysokiej temperatury
 
@@ -190,11 +194,11 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		btnEnd.setFont(new Font("Calibri", Font.PLAIN, 18));
 		btnEnd.setBounds(376, 173, 200, 100);
 		panelSterowanie.add(btnEnd);
-		
+
 		lblDuration = new JLabel("Czas do zakończenia grzania");
 		lblDuration.setBounds(223, 284, 267, 19);
 		panelSterowanie.add(lblDuration);
-		
+
 		lblPresure = new JLabel("Ciśnienie atmosferyczne");
 		lblPresure.setBounds(223, 306, 267, 19);
 		panelSterowanie.add(lblPresure);
@@ -437,8 +441,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 
-	//	LocalTime l = LocalTime.now();
-		String str = "";//l.getHour() + ":" + l.getMinute() + ":" + l.getSecond();
+		// LocalTime l = LocalTime.now();
+		String str = "";// l.getHour() + ":" + l.getMinute() + ":" + l.getSecond();
 
 		if (source == btnStart) {
 			if ((mode == MODE_STOP) || (mode == MODE_PAUSE)) {
@@ -517,26 +521,25 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		PWMOutput pwmOutput;
 		final GpioController gpio;
 		final GpioPinDigitalOutput stycznik;
-		
+
 		Main w = new Main();
 		w.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		w.setVisible(true);
 
-		
-		
-		
-		
-		
-		
-		
-		
+		// wystartowanie serwera webSocket
+		WebServer webServer = new WebServer();
+		webServer.start();// nasłuchiwanie na porcie 4444
+
 		if (!w.LAPTOP) {
 
-			//ustawienie GPIO i stycznika podłączonego przez przekaik na module KKAmodRPi PwrRELAY
-			gpio = GpioFactory.getInstance();//utworzenie Controllera
-			stycznik = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_22, "stycznik", PinState.HIGH);//stycznik podłączony do rel1 płytki
-			stycznik.setShutdownOptions(true,PinState.LOW);
-			
+			// ustawienie GPIO i stycznika podłączonego przez przekaik na module KKAmodRPi
+			// PwrRELAY
+			gpio = GpioFactory.getInstance();// utworzenie Controllera
+			stycznik = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_22, "stycznik", PinState.HIGH);// stycznik
+																									// podłączony do
+																									// rel1 płytki
+			stycznik.setShutdownOptions(true, PinState.LOW);
+
 			String fileName = "/proc/cpuinfo";
 			File file = new File(fileName);
 			Scanner scan = null;
@@ -568,8 +571,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 		// softPWM
 		if (!w.LAPTOP) {
 			pwmOutput = new PWMOutput(1, 100);// pin 1, period [ms]
-			LPS25HB lps = new LPS25HB("cisnienie11", 0x5C, true);//dodanie odczytu ciśnienia atmosferycznego
-			w.i2cMeasures.getI2cDeviceList().add((I2CDevice)lps);
+			LPS25HB lps = new LPS25HB("cisnienie11", 0x5C, true);// dodanie odczytu ciśnienia atmosferycznego
+			w.i2cMeasures.getI2cDeviceList().add((I2CDevice) lps);
 
 			// testowanie zmiany czasu cyklu
 			w.w1measures.measureList.get(0).changeReadCycle(czasCyklums);// zmiana cyklu odczytu
@@ -582,7 +585,7 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 			w.w1measures.measureList.add(p2);
 			w.w1measures.measureList.get(0).setSimulationMode(true);
 			w.w1measures.measureList.get(1).setSimulationMode(true);
-			
+
 		}
 
 		int licznik = 0;
@@ -590,20 +593,20 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 
 		while (true) {
 			try {
-			
+
 				Thread.sleep(czasCyklums);
 				actualMinimal = w.w1measures.getMinMeasure().getValue();// sterowanie do warto�ci minimalnej
 				actualMaximal = w.w1measures.getMaxMeasure().getValue();// ograniczenie do warto�ci maksymalnej
 
-				//obsługa stycznika zasilającego grzałki
-				if(!w.LAPTOP) {
-					if((w.mode == w.MODE_HEATING) || (w.mode == w.MODE_PAUSE)) {
-						stycznik.high();//załączenie stycznika
+				// obsługa stycznika zasilającego grzałki
+				if (!w.LAPTOP) {
+					if ((w.mode == w.MODE_HEATING) || (w.mode == w.MODE_PAUSE)) {
+						stycznik.high();// załączenie stycznika
 					} else {
-						stycznik.low();//wylaczenie jesli nie ma odpowiedniego trybu
+						stycznik.low();// wylaczenie jesli nie ma odpowiedniego trybu
 					}
 				}
-				
+
 				// obsługa licznika czasu grzania
 				if ((actualMinimal >= w.maxTemp) && (w.mode != w.MODE_STOP)) {
 					if (!w.isHot) {// rozpoczecie liczenia czasu
@@ -627,7 +630,8 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 					w.isHot = false;
 					w.startTime = Instant.now();
 				}
-				w.lblDuration.setText("pozostały czas do zakończenia: " + w.heatingTime.minus(heatingPeriod).getSeconds() + "sek.");
+				w.lblDuration.setText(
+						"pozostały czas do zakończenia: " + w.heatingTime.minus(heatingPeriod).getSeconds() + "sek.");
 
 				// zaktualizowanie kolorów buttonów w zależności od trybu
 				w.checkButtonColor();// odpowiednie pokolorowanie buttonów na GUI
@@ -703,30 +707,54 @@ public class Main extends JFrame implements ActionListener, MenuListener {
 				// uaktualnienie wykresy na zakładce wykres
 				w.lineChart.update();
 				licznik++;
-				//uaktualnienie zakładki pomiary
+				// uaktualnienie zakładki pomiary
 				w.guiUpdatePomiary();
+				// wysłanie do serwera www
+				for (int i = 0; i < webServer.getData().size(); i++) {
+					switch (i) {
+					case 0:
+						webServer.getData().set(i, w.zadTemp); // 0 dana do wysłania
+						break;
+					case 1:
+						webServer.getData().set(i, w.maxTemp); // 1 dana do wysłania
+						break;
+					case 2:
+						webServer.getData().set(i, String.format("%.2f", actualMinimal)); // 2 dana do wysłania
+						break;
+					case 3:
+						webServer.getData().set(i, String.format("%.2f", actualMaximal)); // 3 dana do wysłania
+						break;
+					case 4:
+						webServer.getData().set(i, String.format("%.2f", output)); // 4 dana do wysłania
+						break;
+					case 5:  //tryb pracy
+						webServer.getData().set(i, Integer.toString(w.mode)); // 5 dana do wysłania (int)
+						break;
+					}
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	private void guiUpdatePomiary() {
-		//uaktualnienie pomiaru ciśnienia na zakładce sterowania
-	//	lblPresure.setText(String.format());
-		//dodanie odpowiedniej liczby wierszu
+		// uaktualnienie pomiaru ciśnienia na zakładce sterowania
+		// lblPresure.setText(String.format());
+		// dodanie odpowiedniej liczby wierszu
 		DefaultTableModel model = (DefaultTableModel) tabMeasurments.getModel();
-		//usuwamy wszystkie
+		// usuwamy wszystkie
 		int rowCount = model.getRowCount();
-		for(int i=0; i < rowCount; i++) {
+		for (int i = 0; i < rowCount; i++) {
 			int tmp = model.getRowCount();
-			model.removeRow(0);	
+			model.removeRow(0);
 		}
-		
-		for(int i = 0; i < w1measures.count(); i++) {
+
+		for (int i = 0; i < w1measures.count(); i++) {
 			int tmp = w1measures.count();
-			model.addRow(new Object[]{i+1, w1measures.measureList.get(i).getName(), String.format("%.2f",  w1measures.measureList.get(i).getValue() )});
+			model.addRow(new Object[] { i + 1, w1measures.measureList.get(i).getName(),
+					String.format("%.2f", w1measures.measureList.get(i).getValue()) });
 		}
-				
+
 	}
 }
