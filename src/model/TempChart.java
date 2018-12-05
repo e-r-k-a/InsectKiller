@@ -27,14 +27,15 @@ import Application.Main;
  */
 public class TempChart {
 
-	private int axisTime = 3600;// [s]
-
+	private int axisTime = 60;// [s]
+	private int seriesCount = 0;
+	private ArrayList<Double> values = new ArrayList<Double>();
 	public JFreeChart chart;
 	private Measures measures;
-	private TimeSeries seriesMin = new TimeSeries("temp. min");
-	private TimeSeries seriesMax = new TimeSeries("temp. max");
+	// private TimeSeries seriesMin = new TimeSeries("temp. min");
+	// private TimeSeries seriesMax = new TimeSeries("temp. max");
 
-	private TimeSeriesCollection data = new TimeSeriesCollection(seriesMin);
+	private TimeSeriesCollection data = new TimeSeriesCollection();
 
 	public TempChart(String title, Measures measures) {
 		super();
@@ -46,13 +47,21 @@ public class TempChart {
 		axis.setFixedAutoRange(axisTime * 1000); // seconds->ms
 		axis = plot.getRangeAxis();
 		axis.setRange(0.0, 100.0);
-		data.addSeries(seriesMax);
+	}
+	
+	public void setValues(ArrayList<Double> values) {
+		this.values  = values;
 	}
 
-	public void update() {
+	public void update(ArrayList<Double> values, ArrayList<String> descriptions) {
 		final Millisecond now = new Millisecond();
-		seriesMax.add(now, measures.getMaxMeasure().getValue());
-		seriesMin.add(now, measures.getMinMeasure().getValue());
+		while(values.size() > seriesCount) { //jesli więcej serii niż 2 to trzeba
+			data.addSeries(new TimeSeries(descriptions.get(data.getSeriesCount())));
+			seriesCount++;
+		}
+		for(int i=0; i<seriesCount; i++) {
+			data.getSeries(i).add(now, values.get(i));
+		}
 	}
 
 }
