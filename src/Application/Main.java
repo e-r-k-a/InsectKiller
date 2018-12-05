@@ -13,7 +13,6 @@ import java.util.Scanner;
 
 import javax.swing.JFrame;
 
-
 import model.*;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -33,12 +32,12 @@ public class Main {
 
 	// ============== P A R A M E T R Y =============
 	public final static boolean LAPTOP = true;
+	public static boolean simulation = true;// flaga włączenia modelu
 	public double zadTemp = 40.0;// wartość zadana regulatora
 	public double maxTemp = 60.0;// wartość maksymalna (do ogranicznika)
-	public double kp = 3.0;
-	public double Tc = 700;// [ms]
-	public double Td = 1.0;
-	
+	public double kp = 20.0;
+	public double Tc = 500;// [ms]
+	public double Td = 10000;
 
 	public double limKp = 10.0;
 	public double limTc = 50;// [ms]
@@ -53,6 +52,8 @@ public class Main {
 	static public double controllerError = 0.0;
 	static public double limiterError = 0.0;
 	static public double output = 0;
+	static public double tempSym = 0;
+
 	static MainView mv;
 
 	static String durationTime = "pozostały czas do zakończenia: ";
@@ -71,10 +72,10 @@ public class Main {
 	public static int mode = MODE_STOP; // tryb pracy
 	public Instant startTime; // zapamietanie czasu startu grzania
 	public boolean isHot = false;// 1-trwa okres wysokiej temperatury
+	private Simulation sim = new Simulation();
 
 	public static Alarm alarm = new Alarm();
 	public static AlarmListener alarmListener = new AlarmListener() {
-
 		@Override
 		public void alarmExceeded(AlarmEvent e) {
 			// Przyszedł alarm z systemu alarmów
@@ -116,6 +117,7 @@ public class Main {
 		mv = new MainView(this);
 		mv.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mv.setVisible(true);
+
 	}
 
 	public static void main(String[] args) {
@@ -199,6 +201,7 @@ public class Main {
 		// int licznik = 0;
 		Duration heatingPeriod = Duration.ZERO;
 
+		// ========================== L o o p ===============================
 		while (true) {
 			try {
 
@@ -244,11 +247,14 @@ public class Main {
 				// zaktualizowanie parametrów
 				pidController.setParameters(w.kp, w.Tc, w.Td, minOutput, maxOutput);
 				pidLimiter.setParameters(w.limKp, w.limTc, w.Td, minOutput, maxOutput);
-
-				controllerError = w.zadTemp - actualMinimal;
+				if (simulation) {
+					controllerError = w.zadTemp - tempSym;
+					limiterError = w.maxTemp - tempSym;
+				} else {
+					controllerError = w.zadTemp - actualMinimal;
+					limiterError = w.maxTemp - actualMaximal;
+				}
 				pidController.setError(controllerError);
-
-				limiterError = w.maxTemp - actualMaximal;
 				pidLimiter.setError(limiterError);
 
 				// wybierak minimum
@@ -267,10 +273,10 @@ public class Main {
 				if (!LAPTOP) {
 					pwmOutput.setPWM(output);
 				}
-				System.out.format(
-						"zad_reg=%.2f zad_ogr=%.2f temp min= %.2f temp max=%.2f uchyb reg.=%.2f wyjscie= %.2f tryb reg.=%.0f tryb ogr.= %.0f kp=%.2f Tc=%.2f kp_lim=%.2f Tc_lim=%.2f\n",
-						w.zadTemp, w.maxTemp, actualMinimal, actualMaximal, controllerError, output,
-						pidController.getMode(), pidLimiter.getMode(), w.kp, w.Tc, w.limKp, w.limTc);
+		//		System.out.format(
+		//				"zad_reg=%.2f zad_ogr=%.2f temp min= %.2f temp max=%.2f uchyb reg.=%.2f wyjscie= %.2f tryb reg.=%.0f tryb ogr.= %.0f kp=%.2f Tc=%.2f kp_lim=%.2f Tc_lim=%.2f\n",
+		//				w.zadTemp, w.maxTemp, actualMinimal, actualMaximal, controllerError, output,
+		//				pidController.getMode(), pidLimiter.getMode(), w.kp, w.Tc, w.limKp, w.limTc);
 				// uaktualnienie GUI
 				mv.update();
 
@@ -286,6 +292,10 @@ public class Main {
 																												// alarmów
 
 				}
+				// uaktualnienie modelu który pracuje "równolegle"
+				w.sim.setInput(output);
+				w.sim.run();
+				tempSym = w.sim.getOutput();
 
 				// wysłanie do serwera www
 				for (int i = 0; i < webServer.getData().size(); i++) {

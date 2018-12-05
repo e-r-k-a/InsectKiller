@@ -449,6 +449,11 @@ public class MainView extends JFrame {
 		descriptions.add("temp. zadana");
 		values.add(w.output);
 		descriptions.add("wyjście");
+		values.add(Main.tempSym);
+		descriptions.add("temp symulowana");
+
+		
+		
 		lineChart.update(values, descriptions);
 
 	}

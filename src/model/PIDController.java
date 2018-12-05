@@ -18,7 +18,7 @@ public class PIDController implements ActionListener{
 	 private double tracking;
 	 private boolean stop, reset;
 	 
-	 //sta³e
+	 //staï¿½e
 	 public static final int PID_MAN = 0;
 	 public static final int PID_AUTO = 1;
 	   
@@ -29,7 +29,7 @@ public class PIDController implements ActionListener{
 	 private Timer cycleTimer =  new Timer(cycleTime, this);
 	 private double Yp,Yi,Yd;
 	 private double delta,calka, rozniczka, rozniczkaOld;
-	 private double rTM_Lag=0.0, CyklDoLag;
+	 private double rTM_Lag=1000.0, CyklDoLag;
 	 
 	 /*konstruktor */
 	 public PIDController(boolean auto, int msCycle) {
@@ -56,7 +56,7 @@ public class PIDController implements ActionListener{
 			Yp =  uchyb *  kp;
 			//caï¿½kowanie
 			if(( ti != 0.0) && !stop){
-				delta =  kp * ( uchyb +  uchybOld) / 2 *  cycleTime /  ti;
+				delta =  ( uchyb +  uchybOld) / 2 *  cycleTime /  ti;
             	Yi =  calka +  delta;
 			}
 			//rï¿½niczkowanie
@@ -65,7 +65,9 @@ public class PIDController implements ActionListener{
 				if( CyklDoLag > 1) {//ograniczenie bo przy przekroczeniu niestabilne
                 	CyklDoLag = 1;
 				}
-				rozniczka =  kp * ( td /  rTM_Lag) *  delE +  rozniczkaOld * (1.0 -  CyklDoLag);
+				rozniczka =  ( td /  rTM_Lag) *  delE +  rozniczkaOld * (1.0 -  CyklDoLag);
+				Yd = rozniczka;
+			//	System.out.print("rozniczka=" + rozniczka);
 			}
 			calka =  Yi;
 			rozniczkaOld =  rozniczka;
@@ -90,6 +92,7 @@ public class PIDController implements ActionListener{
         	rozniczkaOld = 0;
         	calka = 0.0;
 		}
+		System.out.println("  Yp=" + Yp +" Yi=" + Yi + " Yd=" + Yd);
   	}
 	
 	public double getYh() {
