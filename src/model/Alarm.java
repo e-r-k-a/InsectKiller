@@ -21,6 +21,7 @@ import Application.Main;
  *  5, "temperatura maksymalna większa od dopuszczalnej", Main
  *  6, "osiągnięta temperatura ", Main 
  *  7, "koniec grzania - wysoka temperatura utrzymana przez okres ",Main
+ *  8, "Błąd odczytu temperatury", DS18B20
  */
 public class Alarm {
 	public static AlarmListener aL = new MyAlarmListener();//likstener do wyłapywania alarmów od innych
@@ -46,6 +47,7 @@ public class Alarm {
 
 		@Override
 		public void alarmExceeded(AlarmEvent e) {
+			
 			AlarmPoint al = new AlarmPoint(LocalDate.now(), LocalTime.now(), e.id, e.desc, e.type);
 			lista.add(al);
 			// System.out.println("!!!ALARM!!! " + lista.toString());//Alarmy na konsole

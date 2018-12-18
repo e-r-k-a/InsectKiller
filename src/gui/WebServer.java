@@ -15,7 +15,7 @@ public class WebServer extends WebSocketServer {
 
 	private ArrayList<Object> webData = new ArrayList<Object>();
 	private static int TCP_PORT = 4444;
-	private static int WWW_DATA_COUNT = 6;// liczba wymienianych danych z www
+	private static int WWW_DATA_COUNT = 7;// liczba wymienianych danych z www
 	private Set<WebSocket> conns;
 
 	public WebServer() {
@@ -42,7 +42,7 @@ public class WebServer extends WebSocketServer {
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		switch (message) {
-		case "readReq":
+		case "readReq": //www czeka na wysłanie paczki
 
 			// System.out.println("Message from client: " + message);
 			for (WebSocket sock : conns) {
@@ -55,7 +55,7 @@ public class WebServer extends WebSocketServer {
 			}
 			;
 			break;
-		case "startReq":
+		case "startReq": //na www wcisniety klawisz start
 		//	System.out.println("START");
 			Main.mode = Main.MODE_HEATING; 
 			break;

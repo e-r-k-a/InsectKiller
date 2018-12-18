@@ -35,9 +35,9 @@ public class Main {
 	public static boolean simulation = true;// flaga włączenia modelu
 	public double zadTemp = 40.0;// wartość zadana regulatora
 	public double maxTemp = 60.0;// wartość maksymalna (do ogranicznika)
-	public double kp = 20.0;
-	public double Tc = 500;// [ms]
-	public double Td = 10000;
+	public double kp = 20;
+	public double Tc = 300;// [ms]
+	public double Td = 9000;
 
 	public double limKp = 10.0;
 	public double limTc = 50;// [ms]
@@ -58,13 +58,6 @@ public class Main {
 
 	static String durationTime = "pozostały czas do zakończenia: ";
 
-	/*
-	 * private JPanel panelZdarzenia; private static JTextPane textPaneZdarzenia;
-	 * private static JScrollPane scrollPaneZdarzenia; private static JScrollPane
-	 * scrollPaneRaport; private static JTextPane textPaneRaport;
-	 * 
-	 * private TempChart lineChart;
-	 */
 	public final static int MODE_STOP = 0;
 	public final static int MODE_HEATING = 1;
 	public final static int MODE_PAUSE = 2;
@@ -73,6 +66,9 @@ public class Main {
 	public Instant startTime; // zapamietanie czasu startu grzania
 	public boolean isHot = false;// 1-trwa okres wysokiej temperatury
 	private Simulation sim = new Simulation();
+	public static PIDController pidController = new PIDController(true, 500);
+	public static PIDController pidLimiter = new PIDController(true, 500);
+
 
 	public static Alarm alarm = new Alarm();
 	public static AlarmListener alarmListener = new AlarmListener() {
@@ -175,8 +171,6 @@ public class Main {
 			}
 		}
 
-		PIDController pidController = new PIDController(true, 500);
-		PIDController pidLimiter = new PIDController(true, 500);
 
 		// softPWM
 		if (!LAPTOP) {
@@ -286,11 +280,8 @@ public class Main {
 					String str = "Temperatura maksymalna (" + String.format("%.2f", actualMaximal)
 							+ "st. C) większa od dopuszczalnej";
 					Alarm.aL.alarmExceeded(
-							new AlarmEvent(5, str, AlarmEvent.TYPE_ALARM, LocalDate.now(), LocalTime.now()));// wpisanie
-																												// do
-																												// systemu
-																												// alarmów
-
+							//wpisanie do systemu alarmów
+							new AlarmEvent(5, str, AlarmEvent.TYPE_ALARM, LocalDate.now(), LocalTime.now()));
 				}
 				// uaktualnienie modelu który pracuje "równolegle"
 				w.sim.setInput(output);
@@ -318,6 +309,7 @@ public class Main {
 					case 5: // tryb pracy
 						webServer.getData().set(i, Integer.toString(w.mode)); // 5 dana do wysłania (int)
 						break;
+						
 					}
 				}
 			} catch (InterruptedException e) {

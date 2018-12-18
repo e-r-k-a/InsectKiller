@@ -28,6 +28,7 @@ import org.jfree.chart.ChartPanel;
 
 import model.Alarm;
 import model.AlarmEvent;
+import model.PIDController;
 import model.TempChart;
 
 public class MainView extends JFrame {
@@ -123,6 +124,12 @@ public class MainView extends JFrame {
 		JButton btnEnd = new JButton("Koniec");
 		btnEnd.setFont(new Font("Calibri", Font.PLAIN, 18));
 		btnEnd.setBounds(376, 173, 200, 100);
+		btnEnd.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+		
+			}
+		});
 
 		// ======= ! B U T T O N Y ================
 		// ======== L A B E L E ==================

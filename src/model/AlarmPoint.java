@@ -15,7 +15,7 @@ public class AlarmPoint {
 	private int id = 0;
 	private String description="";
 	private int type;
-	private boolean state;
+	private boolean state; //true - trwa; false - nie ma 
 
 	//Constructor
 	public AlarmPoint(LocalDate date, LocalTime time, int id, String description, int type) {
